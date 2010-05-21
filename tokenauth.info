@@ -1,0 +1,11 @@
+; $Id: tokenauth.info,v 1.3.4.1 2008/05/28 04:55:54 weitzman Exp $
+name = Token authentication
+description = Enable user authentication via a URL token. Useful for feed readers.
+core = 7.x
+
+; Information added by drupal.org packaging script on 2010-05-13
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "tokenauth"
+datestamp = "1273709786"
+
