@@ -2,6 +2,7 @@
 name = Token authentication
 description = Enable user authentication via a URL token. Useful for feed readers.
 core = 7.x
+configure = admin/config/tokenauth
 
 ; Information added by drupal.org packaging script on 2010-05-13
 version = "6.x-1.x-dev"

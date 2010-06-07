@@ -2,6 +2,11 @@
 // $Id: tokenauth.module,v 1.11.4.11 2010/05/12 19:23:31 grayside Exp $
 
 /**
+ * @file
+ * Provides URL variable-based authentication to allowed pages.
+ */
+
+/**
  * Implementation of hook_perm().
  */
 function tokenauth_permission() {
@@ -21,14 +26,14 @@ function tokenauth_permission() {
  * Implementation of hook_menu().
  */
 function tokenauth_menu() {
-  $items['admin/settings/tokenauth'] = array(
+  $items['admin/config/tokenauth'] = array(
     'title' => t('Token authentication'),
     'description' => t('Configure length of tokens, specify which pages accept authentication via token, and reset all tokens, etc.'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('tokenauth_admin_settings'),
     'access arguments' => array('administer tokenauth')
   );
-  $items['admin/settings/tokenauth/reset'] = array(
+  $items['admin/config/tokenauth/reset'] = array(
     'title' => t('Reset tokens'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('tokenauth_reset_confirm'),
@@ -114,7 +119,7 @@ function tokenauth_get_token($uid = NULL) {
     $uid = $user->uid;
   }
   
-  return db_result(db_query("SELECT tt.token FROM {tokenauth_tokens} tt WHERE tt.uid = %d", $uid));
+  return db_query("SELECT tt.token FROM {tokenauth_tokens} tt WHERE tt.uid=?", $uid)->fetchField();
 }
 
 /**
@@ -154,7 +159,7 @@ function tokenauth_reset() {
   $length = variable_get('tokenauth_length', 10);
   $sql = 'SELECT uid FROM {users} WHERE uid > 0';
   $result = db_query($sql);
-  while ($row = db_fetch_object($result)) {
+  foreach ($result as $row) {
     tokenauth_user_reset($row->uid, $length);
   }
 }
@@ -225,8 +230,10 @@ function tokenauth_init() {
   global $user;
   // Process any provided token and log in user
   if (!$user->uid && isset($_REQUEST['token']) && tokenauth_allowed_pages($_GET['q'])) {
-    $sql = "SELECT tt.uid FROM {tokenauth_tokens} tt INNER JOIN {users} u ON tt.uid = u.uid WHERE token = '%s' AND u.status != 0";
-    if ($uid = db_result(db_query($sql, $_REQUEST['token']))) {
+    $sql = "SELECT tt.uid FROM {tokenauth_tokens} tt INNER JOIN {users} u ON tt.uid = u.uid WHERE token=? AND u.status != 0";
+    $uid = db_query($sql, $_REQUEST['token'])->fetchField();
+    
+    if ($uid) {
       $user = user_load(array('uid' => $uid));
       $_SESSION['tokenauth_auth'] = TRUE; // Just store the fact that this user authenticated via token
     }

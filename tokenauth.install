@@ -1,6 +1,13 @@
 <?php
 // $Id: tokenauth.install,v 1.3.4.4 2008/08/10 23:05:54 weitzman Exp $
+/**
+ * @file
+ * Install, update, and uninstall functions for Tokenauth
+ */
 
+/**
+ * Implementation of hook_schema().
+ */
 function tokenauth_schema() {
   $schema['tokenauth_tokens'] = array(
    'description'     => 'Stores information about each user\'s token',
@@ -26,17 +33,22 @@ function tokenauth_schema() {
  return $schema;
 }
 
-
+/**
+ * Implementation of hook_install().
+ */
 function tokenauth_install() {
   drupal_install_schema('tokenauth');
 }
 
+/**
+ * Implementation of hook_enable().
+ */
 function tokenauth_enable() {
   // This used to be a clever subquery but we need to insert a different password for each user.
   $result = db_query("SELECT u.uid FROM {users} u LEFT JOIN {tokenauth_tokens} tt ON u.uid = tt.uid WHERE tt.token IS NULL");
   $length = variable_get('tokenauth_length', 10);
 
-  while ($row = db_fetch_object($result)) {
+  foreach ($result as $row) {
     $fields = array(
       'uid' => $row->uid,
       'token' => user_password($length),
@@ -45,6 +57,9 @@ function tokenauth_enable() {
   }
 }
 
+/**
+ * Implementation of hook_uninstall().
+ */
 function tokenauth_uninstall() {
   drupal_uninstall_schema('tokenauth');
   variable_del('tokenauth_length');
